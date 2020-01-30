@@ -125,7 +125,7 @@ class Storage(object):
                 logging.debug("Found backup {}.{}".format(fqdn, backup_name))
                 yield NodeBackup(storage=self, fqdn=fqdn, name=backup_name, preloaded_blobs=backup_blobs)
 
-    def list_node_backups(self, *, fqdn=None, backup_index_blobs=None):
+    def list_node_backups(self, *, fqdn=None, backup_index_blobs=None, backup_name_filter=None):
         """
         Lists node backups using the index.
         If there is no backup index, no backups will be found.
@@ -214,8 +214,9 @@ class Storage(object):
 
             # we try to be smart here - once we have seen an existing one, we assume all later ones exist too
             if previous_existed:
-                yield node_backup
-                continue
+                if backup_name_filter is None or backup_name_filter == node_backup.name:
+                    yield node_backup
+                    continue
 
             # the idea is to save .exist() calls as they actually go to the storage backend and cost something
             # this is mostly meant to handle the transition period when backups expire before the index does,
@@ -376,7 +377,7 @@ class Storage(object):
         for cluster_backup in self.list_cluster_backups():
             if cluster_backup.name == backup_name:
                 return cluster_backup
-        raise KeyError('No such backup')
+        raise KeyError('The backup {} does not exist'.format(backup_name))
 
     def remove_backup_from_index(self, node_backup):
         """

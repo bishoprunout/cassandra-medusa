@@ -18,7 +18,7 @@ Feature: Integration tests
     We'll spin up a Cassandra cluster
 
     @1
-    Scenario Outline: Perform a backup, verify it, and restore it
+    Scenario Outline: Perform a backup, verify it, restore it and delete it.
         Given I have a fresh ccm cluster running named "scenario1"
         Given I am using "<storage>" as storage provider
         When I create the "test" table in keyspace "medusa"
@@ -38,7 +38,8 @@ Feature: Integration tests
         Then I have 300 rows in the "medusa.test" table
         When I restore the backup named "first_backup"
         Then I have 200 rows in the "medusa.test" table
-        
+        When I delete the backup named "first_backup"
+        Then I cannot see the backup named "first_backup" when I list the backups
         @local
         Examples: Local storage
         | storage           |
